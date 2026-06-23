@@ -1,4 +1,4 @@
-package com.pixelvibe.vedioplayer.pixelvibe
+package com.pixelvibe.vedioplayer
 
 import io.flutter.embedding.android.FlutterActivity
 
