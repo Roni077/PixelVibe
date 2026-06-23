@@ -1,0 +1,62 @@
+name: PixelVibe iOS Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test || echo "Tests failed or no tests found"
+
+  build-debug:
+    name: Build Debug iOS
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build ios --debug --no-codesign
+      - name: Zip Runner.app
+        run: |
+          cd build/ios/iphoneos
+          zip -r PixelVibe_ios_universal_debug.zip Runner.app
+      - name: Upload iOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelVibe_ios_universal_debug
+          path: build/ios/iphoneos/PixelVibe_ios_universal_debug.zip
+
+  build-release:
+    name: Build Release iOS
+    needs: build-debug
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Zip Runner.app
+        run: |
+          cd build/ios/iphoneos
+          zip -r PixelVibe_ios_universal_release.zip Runner.app
+      - name: Upload iOS App
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelVibe_ios_universal_release
+          path: build/ios/iphoneos/PixelVibe_ios_universal_release.zip

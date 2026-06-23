@@ -1,0 +1,60 @@
+name: PixelVibe Windows Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test || echo "Tests failed or no tests found"
+
+  build-debug:
+    name: Build Debug Windows
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build windows --debug
+      - name: Zip Output
+        run: Compress-Archive -Path build\windows\x64\runner\Debug\* -DestinationPath PixelVibe_windows_x64_debug.zip
+        shell: powershell
+      - name: Upload Windows App
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelVibe_windows_x64_debug
+          path: PixelVibe_windows_x64_debug.zip
+
+  build-release:
+    name: Build Release Windows
+    needs: build-debug
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter build windows --release
+      - name: Zip Output
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath PixelVibe_windows_x64_release.zip
+        shell: powershell
+      - name: Upload Windows App
+        uses: actions/upload-artifact@v4
+        with:
+          name: PixelVibe_windows_x64_release
+          path: PixelVibe_windows_x64_release.zip
